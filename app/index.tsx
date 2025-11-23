@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 import { FlatList, Pressable, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
 
 interface Todo {
   id: string;
@@ -9,7 +10,7 @@ interface Todo {
   createdAt: Date;
 }
 
-const todos: Todo[] = [
+const initialTodos: Todo[] = [
   {
     id: "1",
     title: "Buy groceries",
@@ -25,6 +26,32 @@ const todos: Todo[] = [
 ];
 
 export default function Index() {
+  const [todos, setTodos] = useState<Todo[]>(initialTodos);
+
+  const handleAddTodo = (title: string) => {
+    setTodos([
+      ...todos,
+      {
+        id: Math.random().toString(36).substring(2, 15),
+        title,
+        completed: false,
+        createdAt: new Date(),
+      },
+    ]);
+  };
+
+  const handleDeleteTodo = (id: string) => {
+    setTodos(todos.filter((todo) => todo.id !== id));
+  };
+
+  const handleToggleTodo = (id: string) => {
+    setTodos(
+      todos.map((todo) =>
+        todo.id === id ? { ...todo, completed: !todo.completed } : todo
+      )
+    );
+  };
+
   return (
     <>
       <Stack.Screen
@@ -39,15 +66,22 @@ export default function Index() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ padding: 20, gap: 10 }}
         contentInsetAdjustmentBehavior="automatic"
-        renderItem={({ item }) => <TodoItem item={item} />}
-        ListHeaderComponent={<TodoInput />}
+        renderItem={({ item }) => (
+          <TodoItem
+            item={item}
+            onDelete={handleDeleteTodo}
+            onToggle={handleToggleTodo}
+          />
+        )}
+        ListHeaderComponent={<TodoInput onAddTodo={handleAddTodo} />}
         ListFooterComponent={<TodoFooter todos={todos} />}
       />
     </>
   );
 }
 
-function TodoInput() {
+function TodoInput({ onAddTodo }: { onAddTodo: (title: string) => void }) {
+  const [text, setText] = useState("");
   return (
     <View
       style={{
@@ -67,9 +101,21 @@ function TodoInput() {
           fontSize: 16,
           fontWeight: "semibold",
         }}
+        onSubmitEditing={() => {
+          if (text.trim() === "") return;
+          onAddTodo(text);
+          setText("");
+        }}
+        value={text}
+        onChangeText={setText}
       />
       <Pressable
-        style={{ backgroundColor: "gray", padding: 10, borderRadius: 10 }}
+        style={{ backgroundColor: "black", padding: 10, borderRadius: 10 }}
+        onPress={() => {
+          if (text.trim() === "") return;
+          onAddTodo(text);
+          setText("");
+        }}
       >
         <Ionicons name="add" size={20} color="white" />
       </Pressable>
@@ -90,10 +136,20 @@ function TodoFooter({ todos }: { todos: Todo[] }) {
   );
 }
 
-function TodoItem({ item }: { item: Todo }) {
+function TodoItem({
+  item,
+  onDelete,
+  onToggle,
+}: {
+  item: Todo;
+  onDelete: (id: string) => void;
+  onToggle: (id: string) => void;
+}) {
   return (
     <Pressable
-      onPress={() => {}}
+      onPress={() => {
+        onToggle(item.id);
+      }}
       style={{
         padding: 10,
         borderWidth: 1,
@@ -130,7 +186,12 @@ function TodoItem({ item }: { item: Todo }) {
         {item.title}
       </Text>
 
-      <Pressable onPress={() => {}} style={{ marginLeft: "auto" }}>
+      <Pressable
+        onPress={() => {
+          onDelete(item.id);
+        }}
+        style={{ marginLeft: "auto" }}
+      >
         <Ionicons name="trash" size={20} color="gray" />
       </Pressable>
     </Pressable>
