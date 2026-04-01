@@ -1,7 +1,7 @@
-import { Stack } from "expo-router";
 import { FlatList, Pressable, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface Todo {
   id: string;
@@ -53,14 +53,9 @@ export default function Index() {
   };
 
   return (
-    <>
-      <Stack.Screen
-        options={{
-          title: "Your To Do",
-          headerLargeTitle: true,
-          headerStyle: { backgroundColor: "transparent" },
-        }}
-      />
+    <SafeAreaView style={{
+      flex: 1
+    }}>
       <FlatList
         data={todos}
         keyExtractor={(item) => item.id}
@@ -76,7 +71,7 @@ export default function Index() {
         ListHeaderComponent={<TodoInput onAddTodo={handleAddTodo} />}
         ListFooterComponent={<TodoFooter todos={todos} />}
       />
-    </>
+    </SafeAreaView>
   );
 }
 
@@ -93,8 +88,9 @@ function TodoInput({ onAddTodo }: { onAddTodo: (title: string) => void }) {
     >
       <TextInput
         placeholder="Add a new todo"
+        multiline={false}
         style={{
-          flexGrow: 1,
+          flex: 1,
           borderBottomWidth: 2,
           borderBottomColor: "gray",
           padding: 10,
